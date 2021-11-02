@@ -2,5 +2,4 @@
 /.ccls-cache
 /.idea
 /cmake-build-debug
-/.clang-format
 /.vscode
