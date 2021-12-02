@@ -19,6 +19,17 @@ class ByteStream {
 
     bool _error{};  //!< Flag indicating that the stream suffered an error.
 
+    // stream
+    std::string stream = "";
+    const size_t capacity;
+
+    // status
+    bool inputEnded = false;
+
+    // statistics
+    size_t popped = 0;
+    size_t pushed = 0;
+
   public:
     //! Construct a stream with room for `capacity` bytes.
     ByteStream(const size_t capacity);
