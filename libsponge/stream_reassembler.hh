@@ -4,7 +4,9 @@
 #include "byte_stream.hh"
 
 #include <cstdint>
+#include <cstdlib>
 #include <string>
+#include <vector>
 
 //! \brief A class that assembles a series of excerpts from a byte stream (possibly out of order,
 //! possibly overlapping) into an in-order byte stream.
@@ -12,8 +14,25 @@ class StreamReassembler {
   private:
     // Your code here -- add private members as necessary.
 
+    typedef struct {
+        size_t next;
+        bool used;
+        string data;
+    } _data;
+
     ByteStream _output;  //!< The reassembled in-order byte stream
     size_t _capacity;    //!< The maximum number of bytes
+
+    vector<_data> unprocessed;
+    size_t confirmed;
+    bool confirmed_used;
+
+    //! The next Unprocessed
+    size_t nextup;
+    size_t nextend;
+    bool next_used;
+
+    size_t stored;
 
   public:
     //! \brief Construct a `StreamReassembler` that will store up to `capacity` bytes.
