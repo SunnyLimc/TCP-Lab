@@ -1,85 +1,48 @@
 #include "byte_stream.hh"
 
-// Dummy implementation of a flow-controlled in-memory byte stream.
-
-// For Lab 0, please replace with a real implementation that passes the
-// automated checks run by `make check_lab0`.
-
-// You will need to add private members to the class declaration in `byte_stream.hh`
 using namespace std;
 
-ByteStream::ByteStream(const size_t cap) : capacity(cap) {}
+ByteStream::ByteStream(const size_t cap) : _capacity(cap) {}
 
 size_t ByteStream::write(const string &data) {
-    int ret;
-    if (stream.length() == capacity)
-        return 0;
-    if (data.length() + stream.length() <= capacity) {
-        stream += data;
-        ret = data.length();
-    } else {
-        int size_o = stream.length();
-        stream += data.substr(0, capacity - stream.length());
-        ret = capacity - size_o;
+    size_t length = min(data.size(), remaining_capacity());
+    for (size_t i = 0; i < length; i++) {
+        _buffer.push_back(data[i]);
     }
-    pushed += ret;
-    return ret;
+    _write_count += length;
+    return length;
 }
 
-//! \param[in] len bytes will be copied from the output side of the buffer
 string ByteStream::peek_output(const size_t len) const {
-    string ret;
-    if (len <= 0)
-        return "";
-    if (len >= stream.length()) {
-        ret = stream;
-    } else {
-        ret = stream.substr(0, len);
-    }
-    return ret;
+    return string(_buffer.begin(), _buffer.begin() + min(_buffer.size(), len));
 }
 
-//! \param[in] len bytes will be removed from the output side of the buffer
 void ByteStream::pop_output(const size_t len) {
-    if (len <= 0)
-        return;
-    if (len >= stream.length()) {
-        stream = "";
-    } else {
-        stream = stream.substr(len);
+    size_t length = min(_buffer.size(), len);
+    for (size_t i = 0; i < length; i++) {
+        _buffer.pop_front();
     }
-    popped += len;
+    _read_count += length;
 }
 
-//! Read (i.e., copy and then pop) the next "len" bytes of the stream
-//! \param[in] len bytes will be popped and returned
-//! \returns a string
 std::string ByteStream::read(const size_t len) {
-    string ret;
-    if (len <= 0)
-        return "";
-    if (len >= stream.length()) {
-        ret = stream;
-        pop_output(len);
-    } else {
-        ret = stream.substr(0, len);
-        pop_output(len);
-    }
+    string ret = peek_output(len);
+    pop_output(len);
     return ret;
 }
 
-void ByteStream::end_input() { inputEnded = true; }
+void ByteStream::end_input() { _input_ended_flog = true; }
 
-bool ByteStream::input_ended() const { return inputEnded; }
+bool ByteStream::input_ended() const { return _input_ended_flog; }
 
-size_t ByteStream::buffer_size() const { return stream.length(); }
+size_t ByteStream::buffer_size() const { return _buffer.size(); }
 
-bool ByteStream::buffer_empty() const { return stream.length() == 0; }
+bool ByteStream::buffer_empty() const { return _buffer.empty(); }
 
 bool ByteStream::eof() const { return input_ended() && buffer_empty(); }
 
-size_t ByteStream::bytes_written() const { return pushed; }
+size_t ByteStream::bytes_written() const { return _write_count; }
 
-size_t ByteStream::bytes_read() const { return popped; }
+size_t ByteStream::bytes_read() const { return _read_count; }
 
-size_t ByteStream::remaining_capacity() const { return capacity - stream.length(); }
+size_t ByteStream::remaining_capacity() const { return _capacity - _buffer.size(); }

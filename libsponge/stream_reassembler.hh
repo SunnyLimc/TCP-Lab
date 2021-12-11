@@ -4,21 +4,37 @@
 #include "byte_stream.hh"
 
 #include <cstdint>
+#include <set>
 #include <string>
+#include <vector>
 
-//! \brief A class that assembles a series of excerpts from a byte stream (possibly out of order,
-//! possibly overlapping) into an in-order byte stream.
 class StreamReassembler {
+  private:
   private:
     // Your code here -- add private members as necessary.
 
-    ByteStream _output;  //!< The reassembled in-order byte stream
-    size_t _capacity;    //!< The maximum number of bytes
+    ByteStream _output;
+    size_t _capacity;
+
+    struct _node {
+        size_t index = 0;
+        std::string data = "";
+        bool operator<(const _node n) const { return index < n.index; }
+    };
+    struct _size_t_resp {
+        size_t resp;
+        bool flag;
+    };
+
+    std::set<_node> _unassembled_nodes = {};
+    std::vector<char> _pre_output = {};
+    size_t _first_unassembled = 0;
+    size_t _unassembled_bytes = 0;
+    bool _eof = false;
+    size_t _eof_index = 0;
+    _size_t_resp merge_nodes(_node &node1, const _node &node2);
 
   public:
-    //! \brief Construct a `StreamReassembler` that will store up to `capacity` bytes.
-    //! \note This capacity limits both the bytes that have been reassembled,
-    //! and those that have not yet been reassembled.
     StreamReassembler(const size_t capacity);
 
     //! \brief Receive a substring and write any newly contiguous bytes into the stream.
