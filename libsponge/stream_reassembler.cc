@@ -1,14 +1,5 @@
 #include "stream_reassembler.hh"
 
-#include <cmath>
-
-// Dummy implementation of a stream reassembler.
-
-// For Lab 1, please replace with a real implementation that passes the
-// automated checks run by `make check_lab1`.
-
-// You will need to add private members to the class declaration in `stream_reassembler.hh`
-
 using namespace std;
 
 StreamReassembler::StreamReassembler(const size_t capacity) : _output(capacity), _capacity(capacity) {}
