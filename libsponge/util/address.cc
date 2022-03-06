@@ -11,14 +11,14 @@
 
 using namespace std;
 
-//! Converts Raw to `sockaddr *`.
+//  Converts Raw to `sockaddr *`.
 Address::Raw::operator sockaddr *() { return reinterpret_cast<sockaddr *>(&storage); }
 
-//! Converts Raw to `const sockaddr *`.
+//  Converts Raw to `const sockaddr *`.
 Address::Raw::operator const sockaddr *() const { return reinterpret_cast<const sockaddr *>(&storage); }
 
-//! \param[in] addr points to a raw socket address
-//! \param[in] size is `addr`'s length
+//  \param[in] addr points to a raw socket address
+//  \param[in] size is `addr`'s length
 Address::Address(const sockaddr *addr, const size_t size) : _size(size) {
     // make sure proposed sockaddr can fit
     if (size > sizeof(_address.storage)) {
@@ -28,20 +28,20 @@ Address::Address(const sockaddr *addr, const size_t size) : _size(size) {
     memcpy(&_address.storage, addr, size);
 }
 
-//! Error category for getaddrinfo and getnameinfo failures.
+//  Error category for getaddrinfo and getnameinfo failures.
 class gai_error_category : public error_category {
   public:
-    //! The name of the wrapped error
+    //  The name of the wrapped error
     const char *name() const noexcept override { return "gai_error_category"; }
-    //! \brief An error message
-    //! \param[in] return_value the error return value from [getaddrinfo(3)](\ref man3::getaddrinfo)
-    //!                         or [getnameinfo(3)](\ref man3::getnameinfo)
+    //  \brief An error message
+    //  \param[in] return_value the error return value from [getaddrinfo(3)](\ref man3::getaddrinfo)
+    //                          or [getnameinfo(3)](\ref man3::getnameinfo)
     string message(const int return_value) const noexcept override { return gai_strerror(return_value); }
 };
 
-//! \param[in] node is the hostname or dotted-quad address
-//! \param[in] service is the service name or numeric string
-//! \param[in] hints are criteria for resolving the supplied name
+//  \param[in] node is the hostname or dotted-quad address
+//  \param[in] service is the service name or numeric string
+//  \param[in] hints are criteria for resolving the supplied name
 Address::Address(const string &node, const string &service, const addrinfo &hints) : _size() {
     // prepare for the answer
     addrinfo *resolved_address = nullptr;
@@ -65,9 +65,9 @@ Address::Address(const string &node, const string &service, const addrinfo &hint
     *this = Address(wrapped_address->ai_addr, wrapped_address->ai_addrlen);
 }
 
-//! \brief Build a `struct addrinfo` containing hints for [getaddrinfo(3)](\ref man3::getaddrinfo)
-//! \param[in] ai_flags is the value of the `ai_flags` field in the [struct addrinfo](\ref man3::getaddrinfo)
-//! \param[in] ai_family is the value of the `ai_family` field in the [struct addrinfo](\ref man3::getaddrinfo)
+//  \brief Build a `struct addrinfo` containing hints for [getaddrinfo(3)](\ref man3::getaddrinfo)
+//  \param[in] ai_flags is the value of the `ai_flags` field in the [struct addrinfo](\ref man3::getaddrinfo)
+//  \param[in] ai_family is the value of the `ai_family` field in the [struct addrinfo](\ref man3::getaddrinfo)
 static inline addrinfo make_hints(const int ai_flags, const int ai_family) {
     addrinfo hints{};  // value initialized to all zeros
     hints.ai_flags = ai_flags;
@@ -75,13 +75,13 @@ static inline addrinfo make_hints(const int ai_flags, const int ai_family) {
     return hints;
 }
 
-//! \param[in] hostname to resolve
-//! \param[in] service name (from `/etc/services`, e.g., "http" is port 80)
+//  \param[in] hostname to resolve
+//  \param[in] service name (from `/etc/services`, e.g., "http" is port 80)
 Address::Address(const string &hostname, const string &service)
     : Address(hostname, service, make_hints(AI_ALL, AF_INET)) {}
 
-//! \param[in] ip address as a dotted quad ("1.1.1.1")
-//! \param[in] port number
+//  \param[in] ip address as a dotted quad ("1.1.1.1")
+//  \param[in] port number
 Address::Address(const string &ip, const uint16_t port)
     // tell getaddrinfo that we don't want to resolve anything
     : Address(ip, ::to_string(port), make_hints(AI_NUMERICHOST | AI_NUMERICSERV, AF_INET)) {}

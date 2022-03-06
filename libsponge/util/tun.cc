@@ -12,14 +12,15 @@ static constexpr const char *CLONEDEV = "/dev/net/tun";
 
 using namespace std;
 
-//! \param[in] devname is the name of the TUN or TAP device, specified at its creation.
-//! \param[in] is_tun is `true` for a TUN device (expects IP datagrams), or `false` for a TAP device (expects Ethernet frames)
-//!
-//! To create a TUN device, you should already have run
-//!
-//!     ip tuntap add mode tun user `username` name `devname`
-//!
-//! as root before calling this function.
+//  \param[in] devname is the name of the TUN or TAP device, specified at its creation.
+//  \param[in] is_tun is `true` for a TUN device (expects IP datagrams), or `false` for a TAP device (expects Ethernet
+//  frames)
+//
+//  To create a TUN device, you should already have run
+//
+//      ip tuntap add mode tun user `username` name `devname`
+//
+//  as root before calling this function.
 
 TunTapFD::TunTapFD(const string &devname, const bool is_tun)
     : FileDescriptor(SystemCall("open", open(CLONEDEV, O_RDWR))) {

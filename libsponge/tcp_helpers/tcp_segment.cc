@@ -7,8 +7,8 @@
 
 using namespace std;
 
-//! \param[in] buffer string/Buffer to be parsed
-//! \param[in] datagram_layer_checksum pseudo-checksum from the lower-layer protocol
+//  \param[in] buffer string/Buffer to be parsed
+//  \param[in] datagram_layer_checksum pseudo-checksum from the lower-layer protocol
 ParseResult TCPSegment::parse(const Buffer buffer, const uint32_t datagram_layer_checksum) {
     InternetChecksum check(datagram_layer_checksum);
     check.add(buffer);
@@ -26,7 +26,7 @@ size_t TCPSegment::length_in_sequence_space() const {
     return payload().str().size() + (header().syn ? 1 : 0) + (header().fin ? 1 : 0);
 }
 
-//! \param[in] datagram_layer_checksum pseudo-checksum from the lower-layer protocol
+//  \param[in] datagram_layer_checksum pseudo-checksum from the lower-layer protocol
 BufferList TCPSegment::serialize(const uint32_t datagram_layer_checksum) const {
     TCPHeader header_out = _header;
     header_out.cksum = 0;

@@ -2,8 +2,8 @@
 
 using namespace std;
 
-//! \param[in] r is the ParseResult to show
-//! \returns a string representation of the ParseResult
+//  \param[in] r is the ParseResult to show
+//  \returns a string representation of the ParseResult
 string as_string(const ParseResult r) {
     static constexpr const char *_names[] = {
         "NoError",

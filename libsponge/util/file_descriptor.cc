@@ -11,7 +11,7 @@
 
 using namespace std;
 
-//! \param[in] fd is the file descriptor number returned by [open(2)](\ref man2::open) or similar
+//  \param[in] fd is the file descriptor number returned by [open(2)](\ref man2::open) or similar
 FileDescriptor::FDWrapper::FDWrapper(const int fd) : _fd(fd) {
     if (fd < 0) {
         throw runtime_error("invalid fd number:" + to_string(fd));
@@ -35,17 +35,17 @@ FileDescriptor::FDWrapper::~FDWrapper() {
     }
 }
 
-//! \param[in] fd is the file descriptor number returned by [open(2)](\ref man2::open) or similar
+//  \param[in] fd is the file descriptor number returned by [open(2)](\ref man2::open) or similar
 FileDescriptor::FileDescriptor(const int fd) : _internal_fd(make_shared<FDWrapper>(fd)) {}
 
-//! Private constructor used by duplicate()
+//  Private constructor used by duplicate()
 FileDescriptor::FileDescriptor(shared_ptr<FDWrapper> other_shared_ptr) : _internal_fd(move(other_shared_ptr)) {}
 
-//! \returns a copy of this FileDescriptor
+//  \returns a copy of this FileDescriptor
 FileDescriptor FileDescriptor::duplicate() const { return FileDescriptor(_internal_fd); }
 
-//! \param[in] limit is the maximum number of bytes to read; fewer bytes may be returned
-//! \param[out] str is the string to be read
+//  \param[in] limit is the maximum number of bytes to read; fewer bytes may be returned
+//  \param[out] str is the string to be read
 void FileDescriptor::read(std::string &str, const size_t limit) {
     constexpr size_t BUFFER_SIZE = 1024 * 1024;  // maximum size of a read
     const size_t size_to_read = min(BUFFER_SIZE, limit);
@@ -63,8 +63,8 @@ void FileDescriptor::read(std::string &str, const size_t limit) {
     register_read();
 }
 
-//! \param[in] limit is the maximum number of bytes to read; fewer bytes may be returned
-//! \returns a vector of bytes read
+//  \param[in] limit is the maximum number of bytes to read; fewer bytes may be returned
+//  \returns a vector of bytes read
 string FileDescriptor::read(const size_t limit) {
     string ret;
 

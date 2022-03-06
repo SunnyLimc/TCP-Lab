@@ -4,16 +4,16 @@
 
 using namespace std;
 
-//! \param[in,out] p is a NetParser from which the TCP fields will be extracted
-//! \returns a ParseResult indicating success or the reason for failure
-//! \details It is important to check for (at least) the following potential errors
-//!          (but note that NetParser inherently checks for certain errors;
-//!          use that fact to your advantage!):
-//!
-//! - data stream inside the NetParser is too short to contain a header
-//! - the header's `doff` field is shorter than the minimum allowed
-//! - there is less data in the header than the `doff` field claims
-//! - the checksum is bad
+//  \param[in,out] p is a NetParser from which the TCP fields will be extracted
+//  \returns a ParseResult indicating success or the reason for failure
+//  \details It is important to check for (at least) the following potential errors
+//           (but note that NetParser inherently checks for certain errors;
+//           use that fact to your advantage!):
+//
+//  - data stream inside the NetParser is too short to contain a header
+//  - the header's `doff` field is shorter than the minimum allowed
+//  - there is less data in the header than the `doff` field claims
+//  - the checksum is bad
 ParseResult TCPHeader::parse(NetParser &p) {
     sport = p.u16();                 // source port
     dport = p.u16();                 // destination port
@@ -47,7 +47,7 @@ ParseResult TCPHeader::parse(NetParser &p) {
     return ParseResult::NoError;
 }
 
-//! Serialize the TCPHeader to a string (does not recompute the checksum)
+//  Serialize the TCPHeader to a string (does not recompute the checksum)
 string TCPHeader::serialize() const {
     // sanity check
     if (doff < 5) {
@@ -77,7 +77,7 @@ string TCPHeader::serialize() const {
     return ret;
 }
 
-//! \returns A string with the header's contents
+//  \returns A string with the header's contents
 string TCPHeader::to_string() const {
     stringstream ss{};
     ss << hex << boolalpha << "TCP source port: " << +sport << '\n'

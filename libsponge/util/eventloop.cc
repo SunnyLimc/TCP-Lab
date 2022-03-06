@@ -14,12 +14,12 @@ unsigned int EventLoop::Rule::service_count() const {
     return direction == Direction::In ? fd.read_count() : fd.write_count();
 }
 
-//! \param[in] fd is the FileDescriptor to be polled
-//! \param[in] direction indicates whether to poll for reading (Direction::In) or writing (Direction::Out)
-//! \param[in] callback is called when `fd` is ready.
-//! \param[in] interest is called by EventLoop::wait_next_event. If it returns `true`, `fd` will
-//!                     be polled, otherwise `fd` will be ignored only for this execution of `wait_next_event.
-//! \param[in] cancel is called when the rule is cancelled (e.g. on hangup, EOF, or closure).
+//  \param[in] fd is the FileDescriptor to be polled
+//  \param[in] direction indicates whether to poll for reading (Direction::In) or writing (Direction::Out)
+//  \param[in] callback is called when `fd` is ready.
+//  \param[in] interest is called by EventLoop::wait_next_event. If it returns `true`, `fd` will
+//                      be polled, otherwise `fd` will be ignored only for this execution of `wait_next_event.
+//  \param[in] cancel is called when the rule is cancelled (e.g. on hangup, EOF, or closure).
 void EventLoop::add_rule(const FileDescriptor &fd,
                          const Direction direction,
                          const CallbackT &callback,
@@ -28,36 +28,36 @@ void EventLoop::add_rule(const FileDescriptor &fd,
     _rules.push_back({fd.duplicate(), direction, callback, interest, cancel});
 }
 
-//! \param[in] timeout_ms is the timeout value passed to [poll(2)](\ref man2::poll); `wait_next_event`
-//!                       returns Result::Timeout if no fd is ready after the timeout expires.
-//! \returns Eventloop::Result indicating success, timeout, or no more Rule objects to poll.
-//!
-//! For each Rule, this function first calls Rule::interest; if `true`, Rule::fd is added to the
-//! list of file descriptors to be polled for readability (if Rule::direction == Direction::In) or
-//! writability (if Rule::direction == Direction::Out) unless Rule::fd has reached EOF, in which case
-//! the Rule is canceled (i.e., deleted from EventLoop::_rules).
-//!
-//! Next, this function calls [poll(2)](\ref man2::poll) with timeout value `timeout_ms`.
-//!
-//! Then, for each ready file descriptor, this function calls Rule::callback. If fd reaches EOF or
-//! if the Rule was registered using EventLoop::add_cancelable_rule and Rule::callback returns true,
-//! this Rule is canceled.
-//!
-//! If an error occurs during polling, this function throws a std::runtime_error.
-//!
-//! If a [signal(7)](\ref man7::signal) was caught during polling or if EventLoop::_rules becomes empty,
-//! this function returns Result::Exit.
-//!
-//! If a timeout occurred while polling (i.e., no fd became ready), this function returns Result::Timeout.
-//!
-//! Otherwise, this function returns Result::Success.
-//!
-//! \b IMPORTANT: every call to Rule::callback must read from or write to Rule::fd, or the `interest`
-//! callback must stop returning true after the callback completes.
-//! If none of these conditions occur, EventLoop::wait_next_event will throw std::runtime_error. This is
-//! because [poll(2)](\ref man2::poll) is level triggered, so failing to act on a ready file descriptor
-//! will result in a busy loop (poll returns on a ready file descriptor; file descriptor is not read or
-//! written, so it is still ready; the next call to poll will immediately return).
+//  \param[in] timeout_ms is the timeout value passed to [poll(2)](\ref man2::poll); `wait_next_event`
+//                        returns Result::Timeout if no fd is ready after the timeout expires.
+//  \returns Eventloop::Result indicating success, timeout, or no more Rule objects to poll.
+//
+//  For each Rule, this function first calls Rule::interest; if `true`, Rule::fd is added to the
+//  list of file descriptors to be polled for readability (if Rule::direction == Direction::In) or
+//  writability (if Rule::direction == Direction::Out) unless Rule::fd has reached EOF, in which case
+//  the Rule is canceled (i.e., deleted from EventLoop::_rules).
+//
+//  Next, this function calls [poll(2)](\ref man2::poll) with timeout value `timeout_ms`.
+//
+//  Then, for each ready file descriptor, this function calls Rule::callback. If fd reaches EOF or
+//  if the Rule was registered using EventLoop::add_cancelable_rule and Rule::callback returns true,
+//  this Rule is canceled.
+//
+//  If an error occurs during polling, this function throws a std::runtime_error.
+//
+//  If a [signal(7)](\ref man7::signal) was caught during polling or if EventLoop::_rules becomes empty,
+//  this function returns Result::Exit.
+//
+//  If a timeout occurred while polling (i.e., no fd became ready), this function returns Result::Timeout.
+//
+//  Otherwise, this function returns Result::Success.
+//
+//  \b IMPORTANT: every call to Rule::callback must read from or write to Rule::fd, or the `interest`
+//  callback must stop returning true after the callback completes.
+//  If none of these conditions occur, EventLoop::wait_next_event will throw std::runtime_error. This is
+//  because [poll(2)](\ref man2::poll) is level triggered, so failing to act on a ready file descriptor
+//  will result in a busy loop (poll returns on a ready file descriptor; file descriptor is not read or
+//  written, so it is still ready; the next call to poll will immediately return).
 EventLoop::Result EventLoop::wait_next_event(const int timeout_ms) {
     vector<pollfd> pollfds{};
     pollfds.reserve(_rules.size());
