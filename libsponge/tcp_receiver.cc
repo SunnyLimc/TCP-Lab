@@ -5,9 +5,6 @@
 // For Lab 2, please replace with a real implementation that passes the
 // automated checks run by `make check_lab2`.
 
-template <typename... Targs>
-void DUMMY_CODE(Targs &&.../* unused */) {}
-
 using namespace std;
 
 void TCPReceiver::segment_received(const TCPSegment &seg) {
@@ -24,7 +21,7 @@ void TCPReceiver::segment_received(const TCPSegment &seg) {
         if (_reassembler.first_unassembled() != 0) {
             _checkpoint = _reassembler.first_unassembled() - 1;
             _ackno = WrappingInt32(wrap(_checkpoint + 1, _isn) + 1);
-            if (!_syn)  // payload with syn
+            if (not _syn)  // payload with syn
                 _ackno = _ackno.value() - 1;
         }
     }
