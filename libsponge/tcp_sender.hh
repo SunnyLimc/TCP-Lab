@@ -31,7 +31,7 @@ class TCPSender {
     uint64_t _next_seqno = 0;
     uint64_t _last_acked_seqno = 0;
 
-    inline size_t send_segment(TCPSegment &, const size_t, const uint32_t);
+    inline size_t send_segment(TCPSegment &, const size_t, const uint16_t);
     struct _sent_t {
         uint64_t seqend;
         TCPSegment seg;
@@ -47,8 +47,13 @@ class TCPSender {
     bool _fined = false;
 
     // state from the receive
-    uint32_t _saved_window_size = 1;  // window size started at 1 when there is no ACKs
-    size_t _zero_window_size = 0;     // trace the retruned size from ack is 0
+    uint16_t _saved_window_size = 1;  // window size started at 1 when there isn't any new win
+    size_t _zero_window_size =
+        0;  // trace the windows size from ack is 0, set it to 1, if used before any new non-zero win, set it to 2
+
+  public:
+    uint16_t remain_window_size() const { return _saved_window_size; }
+    inline bool full_fined() const { return _fined && (_next_seqno == _last_acked_seqno); }
 
   public:
     // Initialize a TCPSender

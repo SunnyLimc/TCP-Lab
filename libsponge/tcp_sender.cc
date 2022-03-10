@@ -18,7 +18,7 @@ TCPSender::TCPSender(const size_t capacity, const uint16_t retx_timeout, const s
 
 uint64_t TCPSender::bytes_in_flight() const { return _next_seqno - _last_acked_seqno; }
 
-inline size_t TCPSender::send_segment(TCPSegment &segment, const size_t step_size, const uint32_t window_size) {
+inline size_t TCPSender::send_segment(TCPSegment &segment, const size_t step_size, const uint16_t window_size) {
     if (_fined)
         return 0;
     segment.header().seqno = wrap(_next_seqno, _isn);
@@ -29,7 +29,7 @@ inline size_t TCPSender::send_segment(TCPSegment &segment, const size_t step_siz
         ++_next_seqno;
     }
     // dont send empty segment after update
-    if (segment.payload().size() == 0 && not segment.header().syn && not segment.header().fin)
+    if (segment.length_in_sequence_space() == 0)
         return 0;
     _segments_out.push(segment);
     // PLUS first then calculate push

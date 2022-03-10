@@ -16,6 +16,7 @@
 //  remote TCPSender.
 // ! ensure unsign operate always POSITIVE
 class TCPReceiver {
+  private:
     //  Our data structure for re-assembling bytes.
     StreamReassembler _reassembler;
 
