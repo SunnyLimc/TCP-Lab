@@ -22,8 +22,10 @@ class TCPConnection {
     bool _linger_after_streams_finish{true};
     bool _active = true;
 
-    size_t pullpush_segments(const bool);
+    size_t fill_pull_push_segments();
     void fully_dead(const size_t);
+
+    bool _allow_ack = false;
 
     unsigned long long int _linger_timer = 0;
     unsigned long long int _last_seg_timer = 0;

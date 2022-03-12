@@ -11,7 +11,7 @@ class ByteStream {
     std::deque<char> _buffer = {};
     uint64_t _capacity = 0;
 
-    bool _input_ended_flog = false;
+    bool _input_ended_flag = false;
 
     uint64_t _write_count = 0;
     uint64_t _read_count = 0;

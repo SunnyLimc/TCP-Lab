@@ -31,9 +31,9 @@ std::string ByteStream::read(const uint64_t len) {
     return ret;
 }
 
-void ByteStream::end_input() { _input_ended_flog = true; }
+void ByteStream::end_input() { _input_ended_flag = true; }
 
-bool ByteStream::input_ended() const { return _input_ended_flog; }
+bool ByteStream::input_ended() const { return _input_ended_flag; }
 
 uint64_t ByteStream::buffer_size() const { return _buffer.size(); }
 

@@ -12,16 +12,22 @@ void TCPReceiver::segment_received(const TCPSegment &seg) {
     if ((not hder.syn && not _syn) || (hder.syn && _syn)) {
         return;
     }
-    //! deny modify fully ack index
-    //! but allow modify current seqno
-    //! > allow previous seqno because arrival is out-of-order
-    if (_syn && (hder.seqno < _ackno.value() && hder.seqno.raw_value() != _last_seqno)) {
-        return;
-    }
+    /** DEPRECATED: (dont do that)
+        // deny modify fully ack index
+        // but allow modify current seqno
+        // allow previous seqno because arrival is out-of-order
+        // if (_syn && hder.seqno < _ackno.value() && hder.seqno.raw_value() != _last_seqno) {
+        //     return;
+        // }
+    */
     if (seg.payload().size() != 0) {
         uint64_t abseqno = 0;
         if (_syn) {
             abseqno = unwrap(WrappingInt32(hder.seqno - 1), _isn, _checkpoint);
+            //! deny re-ack syn
+            if (unwrap(WrappingInt32(hder.seqno), _isn, _checkpoint) == 0) {
+                return;
+            }
         }
         _reassembler.push_substring(seg.payload().copy(), abseqno, _fin);
         if (_reassembler.first_unassembled() != 0) {
@@ -43,10 +49,10 @@ void TCPReceiver::segment_received(const TCPSegment &seg) {
     if (hder.fin) {
         _fin = true;
     }
-    if (_fin && not _fined && unassembled_bytes() == 0) {
+    if (_fin && not _full_fined && unassembled_bytes() == 0) {
         stream_out().end_input();
         _ackno = _ackno.value() + 1;
-        _fined = true;
+        _full_fined = true;
     }
     _last_seqno = hder.seqno.raw_value();
 }
