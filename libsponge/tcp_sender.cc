@@ -78,15 +78,20 @@ void TCPSender::fill_window() {
 void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_size) {
     if (_fined && _last_acked_seqno == _next_seqno)
         return;
+
     // convert to abs seqno, NOT stream index, not need to minus 1
     auto &&tmp = unwrap(ackno, _isn, _last_acked_seqno);
-    if (tmp <= _next_seqno)
+    if (tmp <= _next_seqno && tmp > _last_acked_seqno)  //! two prerequisites
         _last_acked_seqno = tmp;
-    _saved_window_size =
-        window_size <= (_next_seqno - _last_acked_seqno) ? 0 : (window_size - (_next_seqno - _last_acked_seqno));
+
+    //! if window size < (below) that mean it relys on resend rather than send new segments
+    auto &&bytes_flighting = bytes_in_flight();
+    _saved_window_size = window_size <= bytes_flighting ? 0 : window_size - bytes_flighting;
     _zero_window_size = window_size == 0 ? 1 : 0;
+
     if (not _syn_acked && _last_acked_seqno == 1)
         _syn_acked = true;
+
     // merge recend seq
     if (_syn_acked && not _sent.empty()) {
         // reset some value of states
@@ -96,7 +101,7 @@ void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_si
             _resend_try_times = 0;
         }
         // check from the recent checkpoint
-        //! IMPORTANT iterator use [begin, end)
+        //! iterator use the format [begin, end)
         for (auto iter = _sent.begin(); iter < _sent.cend() && (iter->seqend < _last_acked_seqno); ++iter)
             _sent.pop_front();
     }
@@ -114,6 +119,10 @@ void TCPSender::tick(const size_t ms_since_last_tick) {
             _timeout = 2 * _timeout;
             ++_resend_try_times;
         }
+        //! if no segment available, the timer need to be reset,
+        //! otherwise, it will result in advance counting
+    } else if (_sent.empty()) {
+        _last_time = 0;
     }
 }
 

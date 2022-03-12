@@ -22,10 +22,12 @@ class TCPConnection {
     bool _linger_after_streams_finish{true};
     bool _active = true;
 
-    size_t pull_segments(const bool);
+    size_t pullpush_segments(const bool);
     void fully_dead(const size_t);
 
     unsigned long long int _linger_timer = 0;
+    unsigned long long int _last_seg_timer = 0;
+    unsigned long long int _timer = 0;
 
   public:
     // \name "Input" interface for the writer

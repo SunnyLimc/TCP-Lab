@@ -1,5 +1,4 @@
 /build
 /.ccls-cache
-/.idea
-/cmake-build-debug
 /.vscode
+/build_debug # cmake source_code debug

@@ -25,9 +25,14 @@ class TCPReceiver {
 
     bool _syn = false;
     bool _fin = false;
+    bool _fined = false;
+    uint32_t _last_seqno = 0;
     WrappingInt32 _isn = WrappingInt32{0};
     uint32_t _checkpoint = 0;
     std::optional<WrappingInt32> _ackno = std::nullopt;
+
+  public:
+    bool fully_fined() const { return stream_out().input_ended(); }
 
   public:
     //  \brief Construct a TCP receiver

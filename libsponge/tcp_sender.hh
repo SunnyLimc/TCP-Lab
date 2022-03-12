@@ -53,7 +53,9 @@ class TCPSender {
 
   public:
     uint16_t remain_window_size() const { return _saved_window_size; }
-    inline bool full_fined() const { return _fined && (_next_seqno == _last_acked_seqno); }
+    bool fined() const { return _fined; }
+    bool full_fined() const { return _fined && _next_seqno == _last_acked_seqno; }
+    bool syned() const { return _syned; }
 
   public:
     // Initialize a TCPSender
