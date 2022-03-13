@@ -21,7 +21,7 @@ class TCPReceiver {
     StreamReassembler _reassembler;
 
     //  The maximum number of bytes we'll store.
-    uint64_t _capacity;
+    size_t _capacity;
 
     bool _syn = false;
     bool _fin = false;
@@ -33,13 +33,14 @@ class TCPReceiver {
 
   public:
     bool full_fined() const { return _full_fined; }
+    bool fined() const { return _fin; }
 
   public:
     //  \brief Construct a TCP receiver
     //
     //  \param capacity the maximum number of bytes that the receiver will
     //                  store in its buffers at any give time.
-    TCPReceiver(const uint64_t capacity) : _reassembler(capacity), _capacity(capacity) {}
+    TCPReceiver(const size_t capacity) : _reassembler(capacity), _capacity(capacity) {}
     //  \name Accessors to provide feedback to the remote TCPSender
     // @{
 
@@ -60,11 +61,11 @@ class TCPReceiver {
     //  the first byte that falls after the window (and will not be
     //  accepted by the receiver) and (b) the sequence number of the
     //  beginning of the window (the ackno).
-    uint64_t window_size() const;
+    size_t window_size() const;
     // @}
 
     //  \brief number of bytes stored but not yet reassembled
-    uint64_t unassembled_bytes() const { return _reassembler.unassembled_bytes(); }
+    size_t unassembled_bytes() const { return _reassembler.unassembled_bytes(); }
 
     //  \brief handle an inbound segment
     void segment_received(const TCPSegment &seg);

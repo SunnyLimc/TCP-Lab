@@ -20,23 +20,22 @@ void TCPReceiver::segment_received(const TCPSegment &seg) {
         //     return;
         // }
     */
-    if (seg.payload().size() != 0) {
-        uint64_t abseqno = 0;
-        if (_syn) {
-            abseqno = unwrap(WrappingInt32(hder.seqno - 1), _isn, _checkpoint);
-            //! deny re-ack syn
-            if (unwrap(WrappingInt32(hder.seqno), _isn, _checkpoint) == 0) {
-                return;
-            }
+    uint64_t abseqno = 0;
+    if (_syn) {
+        abseqno = unwrap(WrappingInt32(hder.seqno - 1), _isn, _checkpoint);
+        //! deny re-ack syn
+        if (unwrap(WrappingInt32(hder.seqno), _isn, _checkpoint) == 0) {
+            return;
         }
-        _reassembler.push_substring(seg.payload().copy(), abseqno, _fin);
-        if (_reassembler.first_unassembled() != 0) {
-            //! ackno is updated by checkpoint, so it's not affected by out-of-order arrival
-            _checkpoint = _reassembler.first_unassembled() - 1;
-            _ackno = WrappingInt32(wrap(_checkpoint + 1, _isn) + 1);
-            if (not _syn)  // payload with syn
-                _ackno = _ackno.value() - 1;
-        }
+    }
+    //! use hder.fin
+    _reassembler.push_substring(seg.payload().copy(), abseqno, hder.fin);
+    if (_reassembler.first_unassembled() != 0) {
+        //! ackno is updated by checkpoint, so it's not affected by out-of-order arrival
+        _checkpoint = _reassembler.first_unassembled() - 1;
+        _ackno = WrappingInt32(wrap(_checkpoint + 1, _isn) + 1);
+        if (not _syn)  // payload with syn
+            _ackno = _ackno.value() - 1;
     }
     if (hder.syn) {
         _syn = true;
@@ -49,7 +48,7 @@ void TCPReceiver::segment_received(const TCPSegment &seg) {
     if (hder.fin) {
         _fin = true;
     }
-    if (_fin && not _full_fined && unassembled_bytes() == 0) {
+    if (_fin && not _full_fined && _reassembler.eof()) {
         stream_out().end_input();
         _ackno = _ackno.value() + 1;
         _full_fined = true;

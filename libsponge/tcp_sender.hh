@@ -28,33 +28,32 @@ class TCPSender {
     // outgoing stream of bytes that have not yet been sent
     ByteStream _stream;
     // the (absolute) sequence number for the next byte to be sent
-    uint64_t _next_seqno = 0;
-    uint64_t _last_acked_seqno = 0;
+    uint64_t _next_abs_seqno = 0;
+    uint64_t _last_acked_abs_seqno = 0;
 
-    inline size_t send_segment(TCPSegment &, const size_t, const uint16_t);
     struct _sent_t {
-        uint64_t seqend;
+        uint64_t expected_ack;
         TCPSegment seg;
     };
     // do not need clip off
     std::deque<struct _sent_t> _sent{};
 
     unsigned int _resend_try_times = 0;
-    unsigned long long int _last_time = 0;
+    unsigned int _last_time = 0;
 
     bool _syned = false;
     bool _syn_acked = false;
     bool _fined = false;
 
     // state from the receive
-    uint16_t _saved_window_size = 1;  // window size started at 1 when there isn't any new win
-    size_t _zero_window_size =
-        0;  // trace the windows size from ack is 0, set it to 1, if used before any new non-zero win, set it to 2
+    uint16_t _window_size = 1;  // window size started at 1 when there isn't any new win
 
   public:
-    uint16_t remain_window_size() const { return _saved_window_size; }
+    uint16_t remain_window_size() const { return _window_size; }
     bool fined() const { return _fined; }
-    bool full_fined() const { return _fined && _next_seqno == _last_acked_seqno; }
+    bool full_fined() const { return _fined && _next_abs_seqno == _last_acked_abs_seqno; }
+    // there are two conditions will return true
+    //! 这里提醒我们，API一定要与名字对应，否则后患无穷
     bool syned() const { return _syned; }
 
   public:
@@ -107,10 +106,10 @@ class TCPSender {
     //@{
 
     // \brief absolute seqno for the next byte to be sent
-    uint64_t next_seqno_absolute() const { return _next_seqno; }
+    uint64_t next_seqno_absolute() const { return _next_abs_seqno; }
 
     // \brief relative seqno for the next byte to be sent
-    WrappingInt32 next_seqno() const { return wrap(_next_seqno, _isn); }
+    WrappingInt32 next_seqno() const { return wrap(_next_abs_seqno, _isn); }
     //@}
 };
 

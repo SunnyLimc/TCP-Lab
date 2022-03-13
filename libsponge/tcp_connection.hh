@@ -22,14 +22,13 @@ class TCPConnection {
     bool _linger_after_streams_finish{true};
     bool _active = true;
 
-    size_t fill_pull_push_segments();
+    void judge_do();
+    void pull_push_segments();
     void fully_dead(const size_t);
 
-    bool _allow_ack = false;
+    bool _rst = false;
 
-    unsigned long long int _linger_timer = 0;
     unsigned long long int _last_seg_timer = 0;
-    unsigned long long int _timer = 0;
 
   public:
     // \name "Input" interface for the writer

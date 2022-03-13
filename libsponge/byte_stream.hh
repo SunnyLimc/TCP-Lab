@@ -8,44 +8,50 @@ class ByteStream {
   private:
     bool _error{};
 
-    std::deque<char> _buffer = {};
-    uint64_t _capacity = 0;
+    std::deque<char> _buffer{};
+    size_t _capacity = 0;
 
     bool _input_ended_flag = false;
 
-    uint64_t _write_count = 0;
-    uint64_t _read_count = 0;
+    size_t _write_count = 0;
+    size_t _read_count = 0;
+
+    size_t _size = 0;
 
   public:
-    ByteStream(const uint64_t capacity);
+    ByteStream(const size_t capacity);
 
-    uint64_t write(const std::string &data);
-
-    uint64_t remaining_capacity() const;
-
-    void end_input();
+    size_t write(const std::string &data);
 
     void set_error() { _error = true; }
 
-    std::string peek_output(const uint64_t len) const;
+    std::string peek_output(const size_t len) const;
 
-    void pop_output(const uint64_t len);
-
-    std::string read(const uint64_t len);
-
-    bool input_ended() const;
+    void pop_output(const size_t len);
 
     bool error() const { return _error; }
 
-    uint64_t buffer_size() const;
+    std::string read(const size_t len) {
+        const auto ret = peek_output(len);
+        pop_output(len);
+        return ret;
+    }
 
-    bool buffer_empty() const;
+    void end_input() { _input_ended_flag = true; }
 
-    bool eof() const;
+    bool input_ended() const { return _input_ended_flag; }
 
-    uint64_t bytes_written() const;
+    size_t buffer_size() const { return _size; }
 
-    uint64_t bytes_read() const;
+    bool buffer_empty() const { return _size == 0; }
+
+    bool eof() const { return input_ended() && buffer_empty(); }
+
+    size_t bytes_written() const { return _write_count; }
+
+    size_t bytes_read() const { return _read_count; }
+
+    size_t remaining_capacity() const { return _capacity - _size; }
 };
 
 #endif  // SPONGE_LIBSPONGE_BYTE_STREAM_HH
