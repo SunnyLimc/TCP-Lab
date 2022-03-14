@@ -20,21 +20,23 @@ void TCPReceiver::segment_received(const TCPSegment &seg) {
         //     return;
         // }
     */
-    uint64_t abseqno = 0;
+    uint64_t stream_index = 0;
     if (_syn) {
-        abseqno = unwrap(WrappingInt32(hder.seqno - 1), _isn, _checkpoint);
+        //! hder.fin has not affect on stream_index
+        stream_index = unwrap(WrappingInt32(hder.seqno - 1), _isn, _last_abseqno);
         //! deny re-ack syn
-        if (unwrap(WrappingInt32(hder.seqno), _isn, _checkpoint) == 0) {
+        if (unwrap(WrappingInt32(hder.seqno), _isn, _last_abseqno) == 0) {
             return;
         }
     }
-    //! use hder.fin
-    _reassembler.push_substring(seg.payload().copy(), abseqno, hder.fin);
+    //! use hder.fin for state, so it should not be in a condition wrap
+    _reassembler.push_substring(seg.payload().copy(), stream_index, hder.fin);
     if (_reassembler.first_unassembled() != 0) {
-        //! ackno is updated by checkpoint, so it's not affected by out-of-order arrival
-        _checkpoint = _reassembler.first_unassembled() - 1;
-        _ackno = WrappingInt32(wrap(_checkpoint + 1, _isn) + 1);
-        if (not _syn)  // payload with syn
+        //! ackno is updated by _last_abseqno, so it's not affected by out-of-order arrival
+        _last_abseqno = _reassembler.first_unassembled() - 1;
+        //! if condition, then must be syned
+        _ackno = WrappingInt32(wrap(_last_abseqno + 1, _isn) + 1);
+        if (not _syn)  // the situation when have a payload with syn
             _ackno = _ackno.value() - 1;
     }
     if (hder.syn) {
@@ -46,17 +48,18 @@ void TCPReceiver::segment_received(const TCPSegment &seg) {
             _ackno = _isn + 1;
     }
     if (hder.fin) {
-        _fin = true;
+        // read tcp_receiver.hh for _fin state
+        _fin = 1;
     }
-    if (_fin && not _full_fined && _reassembler.eof()) {
+    //!! TCP is out-of-order, you can't update _ackno without CALCULATED
+    //!! wrong ackno may result in dropping by the opposite
+    if (_fin == 1 && _reassembler.eof()) {
         stream_out().end_input();
-        _ackno = _ackno.value() + 1;
-        _full_fined = true;
+        _fin = 2;
     }
-    _last_seqno = hder.seqno.raw_value();
 }
 
 // return ackno
-optional<WrappingInt32> TCPReceiver::ackno() const { return _ackno; }
+optional<WrappingInt32> TCPReceiver::ackno() const { return _fin == 2 ? WrappingInt32{_ackno.value() + 1} : _ackno; }
 
 size_t TCPReceiver::window_size() const { return stream_out().remaining_capacity(); }

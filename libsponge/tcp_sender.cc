@@ -2,6 +2,7 @@
 
 #include "tcp_config.hh"
 
+#include <iostream>
 #include <random>
 
 using namespace std;
@@ -23,6 +24,7 @@ void TCPSender::fill_window() {
     if (_window_size == 0)
         ex = 1;
 
+    //! _window_size is Dynamic
     //! _window_size = the part of sending + the part of future send
     while (_window_size + ex > bytes_in_flight()) {
         if (_fined) {
@@ -62,7 +64,8 @@ void TCPSender::fill_window() {
             break;
         }
 
-        segment.header().seqno = wrap(_next_abs_seqno, _isn);
+        //! compatible with native api
+        segment.header().seqno = ex == 0 ? wrap(_next_abs_seqno, _isn) : wrap(_next_abs_seqno, _isn) - 1;
         _segments_out.push(segment);
 
         // states update
@@ -78,9 +81,6 @@ void TCPSender::fill_window() {
 // \param ackno The remote receiver's ackno (acknowledgment number)
 // \param window_size The remote receiver's advertised window size
 void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_size) {
-    if (_fined && bytes_in_flight() == 0)
-        return;
-
     //! if window size < (below) that mean it relys on resend rather than send new segments
     _window_size = window_size;
 
@@ -91,18 +91,23 @@ void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_si
         return;
     _last_acked_abs_seqno = tmp;
 
+    // ! DEBUG
+    // cerr << "\033[36m(-) Arrv handle: ackno: " << ackno << ", _last_abs_eqno: " << _last_acked_abs_seqno << "\033[0m"
+    //  << endl;
+
     // merge recend seq
     if (not _sent.empty()) {
-        if (_sent.front().expected_ack <= _last_acked_abs_seqno) {
-            // reset some value of states
-            _timeout = _initial_retransmission_timeout;
-            _last_time = 0;
-            _resend_try_times = 0;
-        }
+        // reset some value of states
+        _timeout = _initial_retransmission_timeout;
+        _last_time = 0;
+        _resend_try_times = 0;
         // check from the recent checkpoint
         //! iterator use the format [begin, end)
-        for (auto iter = _sent.begin(); iter < _sent.cend() && (iter->expected_ack <= _last_acked_abs_seqno); ++iter)
+        for (auto iter = _sent.begin(); iter < _sent.cend() && (iter->expected_ack <= _last_acked_abs_seqno); ++iter) {
+            // cerr << "\033[36m(-) Arrv POP: seqno: " << iter->seg.header().seqno
+            //  << ", expected_ack: " << iter->expected_ack << "\033[0m" << endl;
             _sent.pop_front();
+        }
     }
 }
 
@@ -114,6 +119,7 @@ void TCPSender::tick(const size_t ms_since_last_tick) {
         _segments_out.push(_sent.front().seg);
         _last_time = 0;
         // increase the value of some states
+        //!! don't need to use calculated window_size
         if (_window_size != 0) {
             _timeout = 2 * _timeout;
             ++_resend_try_times;
@@ -127,4 +133,10 @@ void TCPSender::tick(const size_t ms_since_last_tick) {
 
 unsigned int TCPSender::consecutive_retransmissions() const { return _resend_try_times; }
 
-void TCPSender::send_empty_segment() { _segments_out.push(TCPSegment{}); }
+void TCPSender::send_empty_segment() {
+    TCPSegment seg{};
+    //!! need to give each empty seg seqno
+    //!! TCPConnection need it and will not automatically fill seqno for it
+    seg.header().seqno = wrap(_next_abs_seqno, _isn);
+    _segments_out.push(seg);
+}

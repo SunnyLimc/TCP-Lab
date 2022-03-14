@@ -24,16 +24,21 @@ class TCPReceiver {
     size_t _capacity;
 
     bool _syn = false;
-    bool _fin = false;
+
+    // the state of fin
+    // 0: not received fin
+    // 1: received fin but not reach end of reassembler (TCP out-of-order reach)
+    // 2: reach end of reassembler, the end of _receiver
+    size_t _fin = 0;
+
     bool _full_fined = false;
-    uint32_t _last_seqno = 0;
     WrappingInt32 _isn = WrappingInt32{0};
-    uint32_t _checkpoint = 0;
+    uint64_t _last_abseqno = 0;
     std::optional<WrappingInt32> _ackno = std::nullopt;
 
   public:
-    bool full_fined() const { return _full_fined; }
-    bool fined() const { return _fin; }
+    bool full_fined() const { return _fin >= 2; }
+    bool fined() const { return _fin == 1; }
 
   public:
     //  \brief Construct a TCP receiver
