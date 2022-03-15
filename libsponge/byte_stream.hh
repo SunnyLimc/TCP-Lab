@@ -16,8 +16,6 @@ class ByteStream {
     size_t _write_count = 0;
     size_t _read_count = 0;
 
-    size_t _size = 0;
-
   public:
     ByteStream(const size_t capacity);
 
@@ -41,9 +39,9 @@ class ByteStream {
 
     bool input_ended() const { return _input_ended_flag; }
 
-    size_t buffer_size() const { return _size; }
+    size_t buffer_size() const { return _buffer.size(); }
 
-    bool buffer_empty() const { return _size == 0; }
+    bool buffer_empty() const { return _buffer.size() == 0; }
 
     bool eof() const { return input_ended() && buffer_empty(); }
 
@@ -51,7 +49,7 @@ class ByteStream {
 
     size_t bytes_read() const { return _read_count; }
 
-    size_t remaining_capacity() const { return _capacity - _size; }
+    size_t remaining_capacity() const { return _capacity - _buffer.size(); }
 };
 
 #endif  // SPONGE_LIBSPONGE_BYTE_STREAM_HH

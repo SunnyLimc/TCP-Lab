@@ -4,6 +4,11 @@ using namespace std;
 
 StreamReassembler::StreamReassembler(const size_t capacity) : _output(capacity), _capacity(capacity) {}
 
+//! copyright https://github.com/huangrt01/TCP-Lab/blob/master/libsponge/stream_reassembler.cc/
+//! it worth to read it ↑ if you meet with troubles
+//! the versions implemented by my self were put into the archive/ branchs of repo
+//! i will refect it later
+
 // return merged length
 StreamReassembler::_size_t_resp StreamReassembler::merge_nodes(_node &node1, const _node &node2) {
     // a->ahead, b->behind
