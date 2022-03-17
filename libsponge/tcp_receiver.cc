@@ -35,6 +35,7 @@ void TCPReceiver::segment_received(const TCPSegment &seg) {
         //! ackno is updated by _last_abseqno, so it's not affected by out-of-order arrival
         _last_abseqno = _reassembler.first_unassembled() - 1;
         //! if condition, then must be syned
+        //! tag:1
         _ackno = WrappingInt32(wrap(_last_abseqno + 1, _isn) + 1);
         if (not _syn)  // the situation when have a payload with syn
             _ackno = _ackno.value() - 1;
@@ -57,6 +58,8 @@ void TCPReceiver::segment_received(const TCPSegment &seg) {
         stream_out().end_input();
         _fin = 2;
     }
+    //!! Added: ack will be calcalated and update automatically on above (tag:1)
+    //!! we can not set it ONCE just base on state.
 }
 
 // return ackno

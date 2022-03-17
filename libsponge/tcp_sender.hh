@@ -39,7 +39,7 @@ class TCPSender {
     std::deque<struct _sent_t> _sent{};
 
     unsigned int _resend_try_times = 0;
-    unsigned int _last_time = 0;
+    size_t _last_time = 0;
 
     bool _syned = false;
     bool _syn_acked = false;

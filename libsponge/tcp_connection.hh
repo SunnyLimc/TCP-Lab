@@ -28,7 +28,7 @@ class TCPConnection {
 
     bool _rst = false;
 
-    unsigned long long int _last_seg_timer = 0;
+    size_t _last_seg_timer = 0;
 
   public:
     // \name "Input" interface for the writer

@@ -62,7 +62,7 @@ void TCPConnection::pull_push_segments() {
         // cerr << "\033[32m(S) Send: S: " << hder.syn << ", F: " << hder.fin << ", A: " << hder.ack
         //  << ", ack: " << hder.ackno << ", seq: " << hder.seqno << ", win: " << hder.win << ", rst: " << hder.rst
         //  << ", pylsz: " << seg.payload().size() << "\033[0m" << endl;
-        _segments_out.push(seg);
+        _segments_out.emplace(seg);
         sender_queue.pop();
     }
     return;
