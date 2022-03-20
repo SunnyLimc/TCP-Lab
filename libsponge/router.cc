@@ -33,11 +33,11 @@ void Router::add_route(const uint32_t route_prefix,
     uint32_t start_index = route_prefix & (UINT32_MAX << shift);
     uint32_t end_index = start_index + static_cast<uint32_t>(pow(2, 32 - prefix_length) - 1);
     uint32_t next_hop_fmd = next_hop.has_value() ? next_hop.value().ipv4_numeric() : 0;
-
+    //!! need to use the correct TYPE of iterator to ensure successfully any_cast getting, so _router_table.cbegin() is not allowed.
     auto insert =
         _router_table.insert(_router_table.cbegin(),
                              make_pair(make_pair(route_prefix, end_index),
-                                       make_tuple(_router_table.cbegin(), interface_num, next_hop_fmd, prefix_length)));
+                                       make_tuple(_router_table.begin(), interface_num, next_hop_fmd, prefix_length)));
     auto it = insert;
     // if meet with a duplicate key, it cloud be treat as the neatest_prefix
     while (it != _router_table.cbegin()) {
@@ -99,6 +99,7 @@ void Router::route_one_datagram(InternetDatagram &dgram) {
     auto dst_ip = dgram.header().dst;
     // if there are to much segment large than dst_ip, this algorithm time complexity will degenerate to nearly o(n)
     // if have same, match the shortest, to ensure all prefix can be matched
+    //!! 6
     auto it = _router_table.lower_bound(make_pair(dst_ip, 0));
     size_t save_interf = 0;
     uint32_t tar_plen = 0;
@@ -122,6 +123,7 @@ void Router::route_one_datagram(InternetDatagram &dgram) {
         auto cur_pfl = get<3>(it->second);
         //!! cur_pfl geq is needed. we also need to use this prefix for send packet when prefix_len == 0.
         if (it->first.second >= dst_ip && cur_pfl >= tar_plen) {
+            //!! need to update all states, don't be forget someone
             tar_plen = cur_pfl;
             save_interf = get<1>(it->second);
             tar_nexthop = get<2>(it->second);
