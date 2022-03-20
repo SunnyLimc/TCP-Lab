@@ -117,8 +117,7 @@ optional<InternetDatagram> NetworkInterface::recv_frame(const EthernetFrame &efr
         //! need judge target
         InternetDatagram idata{};
         ParseResult err = idata.parse(Buffer(efram.payload()));
-        if (not(err == ParseResult::NoError) ||
-            idata.header().dst == _ip_address.ipv4_numeric()) {  //! maybe have problems
+        if (not(err == ParseResult::NoError)) {  //! maybe have problems
             cerr << "Parse Internet Packet Error: " << static_cast<underlying_type<ParseResult>::type>(err) << endl;
             return nullopt;
         }
@@ -141,10 +140,9 @@ optional<InternetDatagram> NetworkInterface::recv_frame(const EthernetFrame &efr
             send_arp(arpm.sender_ip_address, arpm.sender_ethernet_address);
         } else if (arpm.opcode == ARPMessage::OPCODE_REPLY) {  // try to resend pkg
             for (auto it = _sent_dgram.lower_bound(arpm.sender_ip_address);
-                 it != _sent_dgram.upper_bound(arpm.sender_ip_address);
-                 it++) {
+                 it != _sent_dgram.upper_bound(arpm.sender_ip_address);) {
                 send_dgram(it->second, arpm.sender_ethernet_address);
-                _sent_dgram.erase(it);
+                it = _sent_dgram.erase(it);
             }
         }
         // update arp
